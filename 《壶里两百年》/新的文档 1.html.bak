@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>壶里两百年 · 衡水内画历史脉络</title>
+<style>
+/* ============ 全局 ============ */
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{
+  font-family:"Noto Serif SC","Songti SC","STSong",serif;
+  background:#1a1410;color:#2B2118;
+}
+.page{position:fixed;inset:0;display:none;overflow:hidden;}
+.page.active{display:block;}
+.page:not(.active){display:none !important;}
+
+/* 宣纸纹理 */
+.paper-bg{
+  background-color:#F5EFE3;
+  background-image:
+    repeating-linear-gradient(0deg,rgba(139,110,70,.045) 0px,rgba(139,110,70,.045) 1px,transparent 1px,transparent 3px),
+    repeating-linear-gradient(90deg,rgba(139,110,70,.03) 0px,rgba(139,110,70,.03) 1px,transparent 1px,transparent 4px),
+    radial-gradient(ellipse at 50% 30%,#FAF6ED 0%,#EFE6D5 100%);
+}
+
+.glass{
+  background:rgba(255,255,255,.18);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.35);
+}
+
+.back-btn{
+  position:fixed;top:16px;left:16px;z-index:50;
+  width:40px;height:40px;border-radius:50%;
+  border:none;background:rgba(43,33,24,.75);color:#F5EFE3;
+  font-size:20px;line-height:40px;text-align:center;
+  backdrop-filter:blur(6px);
+}
+.back-btn:active{transform:scale(.92);}
+
+/* ============ 图片防溢出补丁 ============ */
+img{
+  max-width:100%;
+  max-height:100%;
+  display:block;
+}
+.vessel-wrap,
+.slide .vessel,
+.photo-slot,
+.fig-card,
+.poster .qr{
+  overflow:hidden;
+  position:relative;
+}
+.vessel-wrap img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+}
+.slide .vessel img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+}
+.photo-slot img{
+  width:100%;
+  height:auto;
+  border-radius:8px;
+}
+.fig-avatar{
+  width:60px;
+  height:70px;
+  object-fit:cover;
+  border-radius:8px;
+  margin:0 auto 12px;
+  display:block;
+}
+.poster .qr img{
+  width:100%;
+  height:100%;
+  display:block;
+}
+/* 按钮和文字层级高于图片 */
+.start-btn,
+.stage-hint,
+.bottom-nav,
+.fig-name,
+.fig-tag{
+  position:relative;
+  z-index:10;
+}
+
+/* ============ P0 加载页 ============ */
+#loading{
+  background:#1a1410;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+#loading .ink-drop{
+  width:8px;height:8px;border-radius:50%;
+  background:#D9A05B;
+  animation:drop 1.4s ease-in forwards;
+  box-shadow:0 0 14px rgba(217,160,91,.8);
+}
+@keyframes drop{
+  0%{transform:translateY(-40px) scale(.6);opacity:0;}
+  30%{opacity:1;}
+  100%{transform:translateY(60px) scale(1.6);opacity:0;}
+}
+#loading .load-text{margin-top:24px;color:#C9A876;font-size:14px;letter-spacing:4px;}
+
+/* ============ P1 首页 ============ */
+#home{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:
+    radial-gradient(ellipse at 50% 42%,#D9A05B 0%,#B8722C 55%,#7A4A1C 100%);
+}
+#home .vessel-wrap{
+  width:180px;height:220px;position:relative;
+  animation:float 4s ease-in-out infinite;
+}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+#home h1{
+  margin-top:28px;color:#FFF7EA;font-size:24px;letter-spacing:2px;
+  font-weight:500;text-align:center;line-height:1.5;
+  text-shadow:0 2px 12px rgba(0,0,0,.3);
+}
+#home .sub{color:rgba(255,247,234,.75);font-size:13px;letter-spacing:3px;margin-top:10px;}
+#home .start-btn{
+  margin-top:48px;padding:14px 44px;border:none;border-radius:30px;
+  background:rgba(255,255,255,.92);color:#7A4A1C;
+  font-size:16px;letter-spacing:3px;font-family:inherit;
+  box-shadow:0 8px 24px rgba(0,0,0,.25);
+}
+#home .start-btn:active{transform:scale(.96);}
+#home .ink-float{
+  position:absolute;top:-4px;left:50%;transform:translateX(-50%);
+  width:10px;height:10px;border-radius:50%;background:#2B2118;
+  animation:inkPulse 2s ease-in-out infinite;
+}
+@keyframes inkPulse{0%,100%{opacity:.4;transform:translateX(-50%) translateY(0);}50%{opacity:1;transform:translateX(-50%) translateY(6px);}}
+
+/* ============ 钻入壶口过渡 ============ */
+#zoom-layer{
+  position:fixed;inset:0;z-index:500;
+  display:none;pointer-events:none;
+  overflow:hidden;
+}
+#zoom-layer.show{display:block;}
+
+.zoom-ring{
+  position:absolute;
+  left:50%;top:42%;
+  width:100vmax;height:100vmax;
+  margin-left:-50vmax;margin-top:-50vmax;
+  border-radius:50%;
+  background:radial-gradient(circle,
+    #0f0b08 0%,
+    #0f0b08 45%,
+    #2a1f16 65%,
+    rgba(26,20,16,0) 100%);
+  transform:scale(0);
+  opacity:0;
+  will-change:transform,opacity;
+}
+.zoom-ring.grow{
+  animation:ringGrow .6s cubic-bezier(.55,0,.45,1) .35s forwards;
+}
+@keyframes ringGrow{
+  0%{transform:scale(0);opacity:0;}
+  20%{opacity:1;}
+  100%{transform:scale(1);opacity:1;}
+}
+
+#home.zooming .vessel-wrap{
+  animation:vesselZoom .6s cubic-bezier(.4,0,.3,1) forwards;
+}
+@keyframes vesselZoom{
+  0%{transform:translateY(0) scale(1);}
+  100%{transform:translateY(80px) scale(4);}
+}
+#home.zooming h1,
+#home.zooming .sub,
+#home.zooming .start-btn{
+  animation:homeFadeOut .25s ease forwards;
+}
+@keyframes homeFadeOut{
+  to{opacity:0;}
+}
+
+#timeline-page.active{
+  animation:pageFadeIn .45s ease;
+}
+@keyframes pageFadeIn{
+  from{opacity:0;}
+  to{opacity:1;}
+}
+
+/* ============ P2 主时间轴 ============ */
+#timeline-page{
+  display:flex;flex-direction:column;
+  background:#F5EFE3;
+}
+#timeline-page .progress-wrap{
+  height:4px;background:rgba(139,110,70,.15);flex-shrink:0;margin-top:56px;
+}
+#timeline-page .progress-bar{
+  height:100%;width:25%;background:linear-gradient(90deg,#B8722C,#D9A05B);
+  transition:width .2s ease;
+}
+.timeline{
+  flex:1;display:flex;overflow-x:auto;
+  scroll-snap-type:x mandatory;
+  scrollbar-width:none;
+}
+.timeline::-webkit-scrollbar{display:none;}
+.slide{
+  flex:0 0 100%;scroll-snap-align:center;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:0 30px;
+}
+.slide .stage-label{
+  font-size:12px;letter-spacing:6px;color:#B8722C;margin-bottom:6px;
+}
+.slide .stage-title{
+  font-size:22px;letter-spacing:2px;color:#2B2118;margin-bottom:6px;font-weight:600;
+}
+.slide .stage-time{
+  font-size:12px;color:#8B6E46;letter-spacing:1px;margin-bottom:26px;
+}
+.slide .vessel{
+  width:160px;height:200px;cursor:pointer;
+  transition:transform .3s ease;
+}
+.slide .vessel:active{transform:scale(.95);}
+.slide .stage-hint{
+  margin-top:26px;font-size:12px;color:#8B6E46;letter-spacing:2px;
+  animation:hintPulse 2s ease-in-out infinite;
+}
+@keyframes hintPulse{0%,100%{opacity:.5;}50%{opacity:1;}}
+.slide .dots{display:flex;gap:6px;margin-top:14px;}
+.slide .dots i{width:5px;height:5px;border-radius:50%;background:rgba(139,110,70,.3);}
+.slide .dots i.on{background:#B8722C;}
+
+.bottom-nav{
+  flex-shrink:0;display:flex;gap:1px;
+  background:rgba(139,110,70,.15);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.bottom-nav button{
+  flex:1;padding:16px 0;border:none;background:#F5EFE3;
+  font-family:inherit;font-size:13px;letter-spacing:2px;color:#5C4326;
+}
+.bottom-nav button:active{background:#E8DCC6;}
+
+/* ============ 抽屉 ============ */
+.drawer{
+  position:fixed;left:0;right:0;bottom:0;height:75vh;z-index:200;
+  background:rgba(250,246,237,.97);
+  backdrop-filter:blur(12px);
+  border-radius:20px 20px 0 0;
+  transform:translateY(100%);
+  transition:transform .35s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;
+  box-shadow:0 -8px 30px rgba(0,0,0,.25);
+}
+.drawer.open{transform:translateY(0);}
+.drawer-handle{
+  width:40px;height:4px;border-radius:2px;background:rgba(139,110,70,.4);
+  margin:10px auto 0;flex-shrink:0;
+}
+.drawer-content{flex:1;overflow-y:auto;padding:16px 22px 24px;}
+.drawer-close{
+  flex-shrink:0;padding:16px;border:none;
+  background:linear-gradient(90deg,#B8722C,#D9A05B);
+  color:#FFF7EA;font-size:15px;letter-spacing:4px;font-family:inherit;
+}
+.drawer-close:active{opacity:.85;}
+
+.d-title{font-size:18px;font-weight:600;color:#2B2118;letter-spacing:1px;}
+.d-time{font-size:12px;color:#8B6E46;margin-top:4px;margin-bottom:14px;}
+.photo-slot{
+  border:2px dashed #C9A876;border-radius:8px;
+  padding:22px 12px;text-align:center;font-size:12px;color:#8B6E46;
+  background:rgba(255,255,255,.45);margin:10px 0 16px;line-height:1.6;
+}
+/* 当照片位里有图片时，自动去掉虚线框、白底和内边距 */
+.photo-slot:has(img) {
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.event-item{
+  display:flex;gap:12px;padding:9px 0;
+  border-bottom:1px solid rgba(139,110,70,.12);
+}
+.event-item .year{
+  flex-shrink:0;width:58px;font-size:12px;color:#B8722C;
+  font-weight:600;text-align:right;padding-top:2px;
+}
+.event-item .text{font-size:13.5px;line-height:1.7;color:#3A2E22;}
+.note-block{margin-top:14px;}
+.note-toggle{
+  width:100%;text-align:left;padding:11px 14px;border:none;border-radius:8px;
+  background:rgba(184,114,44,.1);color:#8B5A20;
+  font-family:inherit;font-size:13px;letter-spacing:1px;
+}
+.note-toggle::after{content:"＋";float:right;color:#B8722C;}
+.note-toggle.open::after{content:"－";}
+.note-body{
+  display:none;padding:10px 14px;font-size:12.5px;line-height:1.75;
+  color:#6B5540;background:rgba(184,114,44,.05);border-radius:0 0 8px 8px;
+}
+.note-body.show{display:block;}
+
+/* ============ 人物谱系 ============ */
+#figures-page{background:#F5EFE3;display:flex;flex-direction:column;}
+.page-head{padding:70px 22px 14px;flex-shrink:0;}
+.page-head h2{font-size:20px;letter-spacing:2px;color:#2B2118;}
+.page-head p{font-size:12px;color:#8B6E46;margin-top:6px;letter-spacing:1px;}
+.fig-track{
+  flex:1;display:flex;gap:14px;overflow-x:auto;
+  padding:10px 22px 30px;scroll-snap-type:x proximity;
+  scrollbar-width:none;align-items:flex-start;
+}
+.fig-track::-webkit-scrollbar{display:none;}
+.fig-card{
+  flex:0 0 150px;scroll-snap-align:center;
+  background:rgba(255,255,255,.55);border:1px solid rgba(139,110,70,.2);
+  border-radius:14px;padding:16px 14px;cursor:pointer;
+  transition:background .25s;
+}
+.fig-card.active{background:#FFF7EA;border-color:#B8722C;}
+.fig-silhouette{width:60px;height:70px;margin:0 auto 12px;display:block;}
+.fig-name{text-align:center;font-size:15px;font-weight:600;color:#2B2118;letter-spacing:1px;}
+.fig-tag{
+  text-align:center;font-size:11px;color:#8B6E46;
+  margin-top:6px;line-height:1.5;letter-spacing:.5px;
+}
+.fig-detail{
+  display:none;margin-top:12px;padding-top:12px;
+  border-top:1px dashed rgba(139,110,70,.35);
+  font-size:12px;line-height:1.75;color:#5C4326;
+}
+.fig-detail.show{display:block;}
+.fig-detail b{color:#B8722C;font-weight:600;}
+.fig-note{
+  margin-top:8px;font-size:11px;color:#A08464;line-height:1.6;
+  padding:6px 8px;background:rgba(184,114,44,.08);border-radius:6px;
+}
+
+/* ============ 文脉图 ============ */
+#heritage-page{background:#F5EFE3;display:flex;flex-direction:column;}
+.heritage-track{
+  flex:1;display:flex;align-items:center;gap:0;
+  overflow-x:auto;padding:0 30px;
+  scrollbar-width:none;
+}
+.heritage-track::-webkit-scrollbar{display:none;}
+.hnode{
+  flex-shrink:0;position:relative;display:flex;flex-direction:column;
+  align-items:center;gap:8px;cursor:pointer;
+}
+.hnode .hdot{
+  width:14px;height:14px;border-radius:50%;
+  background:#B8722C;border:3px solid #F5EFE3;
+  box-shadow:0 0 0 2px #B8722C;
+}
+.hnode .hlabel{
+  font-size:12px;color:#5C4326;white-space:nowrap;
+  letter-spacing:1px;padding:4px 8px;border-radius:6px;
+  background:rgba(255,255,255,.5);
+}
+.hlink{flex-shrink:0;width:70px;height:2px;background:rgba(184,114,44,.4);margin:0 -8px;}
+.hbubble{
+  position:absolute;bottom:100%;left:50%;transform:translateX(-50%) translateY(-8px);
+  width:200px;padding:10px 12px;border-radius:10px;
+  background:rgba(184,114,44,.95);color:#FFF7EA;
+  font-size:12px;line-height:1.65;letter-spacing:.5px;
+  box-shadow:0 6px 20px rgba(0,0,0,.2);
+  display:none;z-index:10;
+}
+.hbubble.show{display:block;animation:bubbleIn .2s ease;}
+@keyframes bubbleIn{from{opacity:0;transform:translateX(-50%) translateY(0);}to{opacity:1;transform:translateX(-50%) translateY(-8px);}}
+
+/* ============ 留言板 ============ */
+#board-page{background:#F5EFE3;display:flex;flex-direction:column;}
+.board-wall{
+  flex:1;overflow-y:auto;padding:0 22px 16px;
+  display:flex;flex-wrap:wrap;gap:10px;align-content:flex-start;
+  scrollbar-width:none;
+}
+.board-wall::-webkit-scrollbar{display:none;}
+.msg{
+  padding:10px 14px;border-radius:14px 14px 14px 4px;
+  background:rgba(255,255,255,.7);border:1px solid rgba(139,110,70,.18);
+  font-size:13px;color:#3A2E22;line-height:1.5;
+  animation:msgIn .35s ease;max-width:100%;
+}
+@keyframes msgIn{from{opacity:0;transform:translateY(10px) scale(.95);}to{opacity:1;transform:none;}}
+.msg.quick{background:rgba(217,160,91,.25);border-color:rgba(184,114,44,.35);}
+.board-input{flex-shrink:0;padding:12px 18px calc(14px + env(safe-area-inset-bottom));background:rgba(255,255,255,.85);border-top:1px solid rgba(139,110,70,.2);}
+.quick-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px;}
+.quick-row button{
+  padding:7px 12px;border-radius:16px;border:1px solid rgba(184,114,44,.4);
+  background:rgba(184,114,44,.08);color:#8B5A20;
+  font-family:inherit;font-size:11.5px;letter-spacing:.5px;
+}
+.quick-row button:active{background:rgba(184,114,44,.25);}
+.input-row{display:flex;gap:9px;}
+.input-row input{
+  flex:1;padding:11px 14px;border-radius:20px;
+  border:1px solid rgba(139,110,70,.35);background:#FFFDF8;
+  font-family:inherit;font-size:14px;color:#2B2118;outline:none;
+}
+.input-row input:focus{border-color:#B8722C;}
+.input-row button{
+  padding:0 22px;border:none;border-radius:20px;
+  background:linear-gradient(90deg,#B8722C,#D9A05B);
+  color:#FFF7EA;font-family:inherit;font-size:14px;letter-spacing:2px;
+}
+.input-row button:active{opacity:.85;}
+
+/* ============ 海报弹层 ============ */
+#poster-layer{
+  position:fixed;inset:0;z-index:300;display:none;
+  align-items:center;justify-content:center;
+  background:rgba(26,20,16,.85);backdrop-filter:blur(6px);
+  padding:24px;
+  overflow-y:auto;
+}
+#poster-layer.show{display:flex;}
+
+.poster-wrap{
+  display:flex;flex-direction:column;align-items:center;gap:18px;
+  width:100%;max-width:340px;
+}
+.poster{
+  width:100%;border-radius:18px;overflow:hidden;
+  background:linear-gradient(160deg,#D9A05B 0%,#B8722C 60%,#7A4A1C 100%);
+  padding:28px 24px 24px;text-align:center;
+  box-shadow:0 20px 50px rgba(0,0,0,.4);
+}
+.poster .p-msg{color:#FFF7EA;font-size:17px;line-height:1.6;letter-spacing:1px;min-height:60px;word-break:break-all;}
+.poster .p-vessels{display:flex;justify-content:center;gap:12px;margin:20px 0;}
+.poster .p-line{height:1px;background:rgba(255,247,234,.3);margin:16px 0;}
+.poster .p-foot{display:flex;align-items:center;gap:14px;}
+.poster .qr{
+  width:64px;height:64px;flex-shrink:0;border-radius:6px;
+  background:#FFF7EA;
+  background-image:
+    repeating-linear-gradient(0deg,#2B2118 0 3px,transparent 3px 6px),
+    repeating-linear-gradient(90deg,#2B2118 0 3px,transparent 3px 6px);
+  background-size:6px 6px;
+  border:4px solid #FFF7EA;
+}
+.poster .p-foot-text{text-align:left;color:#FFF7EA;font-size:12px;line-height:1.6;letter-spacing:1px;}
+.poster .p-foot-text strong{display:block;font-size:14px;margin-bottom:2px;}
+
+.back-to-board{
+  padding:13px 44px;border:none;border-radius:26px;
+  background:rgba(255,255,255,.95);color:#7A4A1C;
+  font-family:inherit;font-size:15px;letter-spacing:3px;
+  box-shadow:0 8px 22px rgba(0,0,0,.3);
+}
+.back-to-board:active{transform:scale(.96);}
+
+#poster-layer .close-poster{
+  position:absolute;top:20px;right:20px;width:36px;height:36px;border-radius:50%;
+  border:none;background:rgba(255,255,255,.2);color:#FFF7EA;font-size:18px;
+}
+</style>
+</head>
+<body>
+
+<!-- ================= P0 加载页 ================= -->
+<div class="page active" id="loading">
+  <div class="ink-drop"></div>
+  <div class="load-text">正在磨墨</div>
+</div>
+
+<!-- ================= P1 首页 ================= -->
+<div class="page" id="home">
+  <div class="vessel-wrap">
+    <div class="ink-float"></div>
+   <img src="img/01.png" alt="鼻烟壶">
+  </div>
+  <h1>壶口不足一厘米<br>却画了两百年</h1>
+  <div class="sub">衡水内画 · 历史脉络</div>
+  <button class="start-btn" onclick="startJourney()">开始旅行</button>
+</div>
+
+<!-- ================= P2 主时间轴 ================= -->
+<div class="page" id="timeline-page" style="background:#F5EFE3;">
+  <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+
+  <div class="timeline" id="timeline">
+
+    <!-- 阶段一 -->
+    <div class="slide" data-stage="0">
+      <div class="stage-label">第一阶段</div>
+      <div class="stage-title">起源与传入</div>
+      <div class="stage-time">明末清初 — 嘉庆二十一年（约1816）</div>
+      <div class="vessel" onclick="openDrawer(0)">
+       <img src="img/02.png" alt="素面扁壶">
+      </div>
+      <div class="stage-hint">点击壶身 · 查看史料</div>
+      <div class="dots"><i class="on"></i><i></i><i></i><i></i></div>
+    </div>
+
+    <!-- 阶段二 -->
+    <div class="slide" data-stage="1">
+      <div class="stage-label">第二阶段</div>
+      <div class="stage-title">京鲁鼎盛与凋零</div>
+      <div class="stage-time">约1890 — 1954</div>
+      <div class="vessel" onclick="openDrawer(1)">
+        <img src="img/03.png" alt="彩绘人物扁壶">
+      </div>
+      <div class="stage-hint">点击壶身 · 查看史料</div>
+      <div class="dots"><i></i><i class="on"></i><i></i><i></i></div>
+    </div>
+
+    <!-- 阶段三 -->
+    <div class="slide" data-stage="2">
+      <div class="stage-label">第三阶段</div>
+      <div class="stage-title">冀派创立与扎根衡水</div>
+      <div class="stage-time">1950年代 — 1970年代</div>
+      <div class="vessel" onclick="openDrawer(2)">
+       <img src="img/04.png" alt="水晶内画壶">
+      </div>
+      <div class="stage-hint">点击壶身 · 查看史料</div>
+      <div class="dots"><i></i><i></i><i class="on"></i><i></i></div>
+    </div>
+
+    <!-- 阶段四 -->
+    <div class="slide" data-stage="3">
+      <div class="stage-label">第四阶段</div>
+      <div class="stage-title">当代传承与创新前奏</div>
+      <div class="stage-time">1980年代 — 至今</div>
+      <div class="vessel" onclick="openDrawer(3)">
+        <img src="img/05.png" alt="异形多棱壶">
+      </div>
+      <div class="stage-hint">点击壶身 · 查看史料</div>
+      <div class="dots"><i></i><i></i><i></i><i class="on"></i></div>
+    </div>
+
+  </div>
+
+  <div class="bottom-nav">
+    <button onclick="go('figures-page')">人物谱系</button>
+    <button onclick="go('heritage-page')">文脉传承图</button>
+    <button onclick="go('board-page')">留言板</button>
+  </div>
+</div>
+
+<!-- ================= 抽屉 ================= -->
+<div class="drawer" id="drawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-content" id="drawerContent"></div>
+  <button class="drawer-close" onclick="closeDrawer()">回到时间轴</button>
+</div>
+
+<!-- ================= P4 人物谱系 ================= -->
+<div class="page" id="figures-page">
+  <button class="back-btn" onclick="go('timeline-page')">‹</button>
+  <div class="page-head">
+    <h2>人物谱系</h2>
+    <p>左右滑动 · 点击卡片查看详情</p>
+  </div>
+  <div class="fig-track" id="figTrack"></div>
+</div>
+
+<!-- ================= P5 文脉传承图 ================= -->
+<div class="page" id="heritage-page">
+  <button class="back-btn" onclick="go('timeline-page')">‹</button>
+  <div class="page-head">
+    <h2>文脉传承图</h2>
+    <p>左右滑动 · 点击节点查看一句话史料</p>
+  </div>
+  <div class="heritage-track" id="heritageTrack"></div>
+</div>
+
+<!-- ================= P6 留言板 ================= -->
+<div class="page" id="board-page">
+  <button class="back-btn" onclick="go('timeline-page')">‹</button>
+  <div class="page-head">
+    <h2>你觉得壶里该画什么？</h2>
+    <p>写下你的答案 · 或点一个常用留言</p>
+  </div>
+  <div class="board-wall" id="boardWall"></div>
+  <div class="board-input">
+    <div class="quick-row" id="quickRow"></div>
+    <div class="input-row">
+      <input type="text" id="msgInput" maxlength="30" placeholder="写下你的一句话…">
+      <button onclick="submitMsg()">落墨</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 钻入壶口过渡层 ================= -->
+<div id="zoom-layer">
+  <div class="zoom-ring"></div>
+</div>
+
+<!-- ================= 分享海报页 ================= -->
+<div id="poster-layer">
+  <button class="close-poster" onclick="closePoster()">✕</button>
+  <div class="poster-wrap">
+    <div class="poster" id="poster">
+      <div class="p-msg" id="posterMsg"></div>
+      <div class="p-vessels">
+        <svg viewBox="0 0 40 50" width="34" height="42"><path d="M17 5 L17 11 Q17 13 14 15 Q6 22 6 33 Q6 45 20 45 Q34 45 34 33 Q34 22 26 15 Q23 13 23 11 L23 5 Z" fill="rgba(255,247,234,.25)" stroke="rgba(255,247,234,.7)" stroke-width="1"/></svg>
+        <svg viewBox="0 0 40 50" width="40" height="50"><path d="M17 5 L17 11 Q17 13 14 15 Q5 23 5 34 Q5 46 20 46 Q35 46 35 34 Q35 23 26 15 Q23 13 23 11 L23 5 Z" fill="rgba(255,247,234,.4)" stroke="rgba(255,247,234,.8)" stroke-width="1"/></svg>
+        <svg viewBox="0 0 40 50" width="34" height="42"><path d="M17 5 L17 11 Q17 13 14 15 Q6 22 6 33 Q6 45 20 45 Q34 45 34 33 Q34 22 26 15 Q23 13 23 11 L23 5 Z" fill="rgba(255,247,234,.25)" stroke="rgba(255,247,234,.7)" stroke-width="1"/></svg>
+      </div>
+      <div class="p-line"></div>
+      <div class="p-foot">
+        <div class="qr"></div>
+        <div class="p-foot-text">
+          <strong>壶里两百年</strong>
+          壶口不足一厘米<br>却画了两百年
+        </div>
+      </div>
+    </div>
+    <button class="back-to-board" onclick="closePoster()">返回留言板</button>
+  </div>
+</div>
+
+<script>
+/* ================= 页面切换 ================= */
+function go(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const el = document.getElementById(id);
+  if(el) el.classList.add('active');
+}
+
+setTimeout(()=>go('home'), 1600);
+
+/* ================= 钻入壶口过渡 ================= */
+function startJourney(){
+  const home = document.getElementById('home');
+  const vesselWrap = home.querySelector('.vessel-wrap');
+  const rect = vesselWrap.getBoundingClientRect();
+  const mouthX = rect.left + rect.width / 2;
+  const mouthY = rect.top + 6;
+
+  const zoomLayer = document.getElementById('zoom-layer');
+  const ring = zoomLayer.querySelector('.zoom-ring');
+  ring.style.left = mouthX + 'px';
+  ring.style.top = mouthY + 'px';
+
+  home.classList.add('zooming');
+  zoomLayer.classList.add('show');
+
+  void ring.offsetWidth;
+  ring.classList.add('grow');
+
+  setTimeout(()=>{
+    home.classList.remove('zooming');
+    zoomLayer.classList.remove('show');
+    ring.classList.remove('grow');
+    ring.style.left = '';
+    ring.style.top = '';
+    go('timeline-page');
+  }, 1000);
+}
+
+/* ================= 史料数据 ================= */
+const stages = [
+  {
+    name:'第一阶段 · 起源与传入',
+    time:'明末清初 — 嘉庆二十一年（约1816）',
+    photo:'<img src="img/08.png" alt="甘桓1816年山水鼻烟壶">',
+    events:[
+      {y:'明末', t:'鼻烟随欧洲传教士与海上贸易传入中国，鼻烟壶随之出现。'},
+      {y:'清初', t:'闻鼻烟风行一时，为内画鼻烟壶的出现提供土壤。'},
+      {y:'传说一', t:'困庙小吏用烟签掏挖壶壁残渣，划出痕迹；和尚以竹签烤弯削尖，蘸墨作画。'},
+      {y:'传说二', t:'南方画家甘桓以磨砂制笔，摸索出内画方法。'},
+      {y:'1816', t:'甘桓作山水鼻烟壶，为现存最早有纪年的内画实物。'}
+    ],
+   notes:[
+  {t:'利玛窦1581年进京？这是个误会', b:'清代文献记载是明万历九年（1581年）传入，但利玛窦其实是1601年才进京的。所以片子里我们写“明末随传教士传入”，不写具体年份。'},
+  {t:'内画怎么诞生的？专家也吵架', b:'学术界有两种说法：一说是困在庙里的小吏用烟签刮出来的；另一说是南方画家甘桓用磨砂制笔摸索出来的。两说并存，没人敢下定论。'},
+  {t:'内画不是在乾隆末年诞生的', b:'很多人以为内画从乾隆朝就有，但现存最早有纪年的实物，是甘桓1816年（嘉庆二十一年）作的山水鼻烟壶。下限得推到嘉庆。'}
+]
+  },
+  {
+    name:'第二阶段 · 京鲁鼎盛与凋零',
+    time:'约1890 — 1954',
+    photo:'<img src="img/09-03.png" alt="京派四大家作品拼图">',
+    events:[
+      {y:'京派', t:'京派四大家：周乐元、丁二仲（1868—1935）、马少宣（1867—1939）、叶仲三。'},
+      {y:'1890', t:'博山商人王凤诒在北京周乐元家见到内画，回博山后转述给17岁的毕荣九，毕荣九自行琢磨试制成功。'},
+      {y:'1915', t:'马少宣作品获巴拿马万国博览会名誉奖，内画第一次获得国际认可。'},
+      {y:'战乱', t:'时局动荡，内画几乎人亡艺绝。'},
+      {y:'1954', t:'叶晓峰、叶慕祺被政府聘入北京工艺美术研究所，京派绝处逢生。'}
+    ],
+    notes:[
+  {t:'1957和1958，是两个不同的年份', b:'王习三是1957年考入研究所的，直到1958年2月28日才正式拜师。所以不能笼统写成“1958年入京学艺”。'},
+  {t:'三年干了三件事', b:'1966年被遣返；1967年靠副业恢复内画；1968年秋天才受电线头启发做出了金属笔。不是一回去就发明了神兵利器。'},
+  {t:'叶仲三儿子的名字怎么这么乱？', b:'“叶慕祺”还是“叶奉祺”？网上各种写法都有。我们实拍了博物馆的说明牌，全片统一按馆方的标准写法来。'}
+]
+  },
+  {
+    name:'第三阶段 · 冀派创立与扎根衡水',
+    time:'1950年代 — 1970年代',
+    photo:'<img src="img/10.png" alt="王习三老照片AI生成">',
+    events:[
+      {y:'1957', t:'王习三（原名王瑞成）高中毕业后考入北京工艺美术研究所。'},
+      {y:'1958.2.28', t:'正式拜叶晓峰、叶慕祺为师，成为叶派第一个外姓传人。'},
+      {y:'1966', t:'因时代原因被遣返河北衡水阜城杨庄。'},
+      {y:'1967', t:'以副业形式恢复内画，冀派内画在衡水开始扎根。'},
+      {y:'1968秋', t:'受电工剪落的电线头启发，发明金属杆勾毛笔（习三弯勾笔）。'}
+    ],
+    notes:[
+  {t:'1957和1958，是两个不同的年份', b:'王习三是1957年考入研究所的，直到1958年2月28日才正式拜师。所以不能笼统写成“1958年入京学艺”。'},
+  {t:'三年干了三件事', b:'1966年被遣返；1967年靠副业恢复内画；1968年秋天才受电线头启发做出了金属笔。不是一回去就发明了神兵利器。'},
+  {t:'叶仲三儿子的名字怎么这么乱？', b:'“叶慕祺”还是“叶奉祺”？网上各种写法都有。我们实拍了博物馆的说明牌，全片统一按馆方的标准写法来。'}
+]
+  },
+  {
+    name:'第四阶段 · 当代传承与创新前奏',
+    time:'1980年代 — 至今',
+    photo:'<img src="img/11.png" alt="王习三画博物馆">',
+    events:[
+      {y:'1981', t:'王习三发起成立中国鼻烟壶研究会，行业开始组织化。'},
+      {y:'1996', t:'衡水习三工艺美术专科学校成立，全国唯一国家教委承认的内画专业院校。'},
+      {y:'2006', t:'衡水内画入选首批国家级非遗，编号VII-15。'},
+      {y:'当代', t:'王自勇推动"艺术品实用化，实用品艺术化"，研发内画酒具、茶具等实用型新产品。'},
+      {y:'谱系', t:'传承代次谱系待馆方确认，暂不标注"第七代"。'}
+    ],
+    notes:[
+  {t:'衡水内画不只是一个人', b:'1981年成立中国鼻烟壶研究会，1996年创办工艺美术专科学校。有了行业组织和正规教育，冀派才真正做大。'},
+  {t:'到底传到第几代了？', b:'有报道说是“第七代”，但从甘桓算？从叶仲三算？还是从王习三算？代次谱系还得找博物馆和王自勇馆长当面核对，所以片子里我们先不把话说死。'},
+  {t:'首批国家级非遗', b:'2006年，衡水内画入选首批国家级非物质文化遗产名录，编号VII-15。'}
+]
+  }
+];
+
+/* ================= 抽屉 ================= */
+const drawer = document.getElementById('drawer');
+const drawerContent = document.getElementById('drawerContent');
+
+function openDrawer(i){
+  const s = stages[i];
+  let html = '';
+  html += '<div class="d-title">'+s.name+'</div>';
+  html += '<div class="d-time">'+s.time+'</div>';
+  html += '<div class="photo-slot">'+s.photo+'</div>';
+  html += '<div>';
+  s.events.forEach(e=>{
+    html += '<div class="event-item"><div class="year">'+e.y+'</div><div class="text">'+e.t+'</div></div>';
+  });
+  html += '</div>';
+  html += '<div class="note-block">';
+  s.notes.forEach((n,idx)=>{
+    html += '<button class="note-toggle'+(idx===0?' open':'')+'" onclick="toggleNote(this)">'+n.t+'</button>';
+    html += '<div class="note-body'+(idx===0?' show':'')+'">'+n.b+'</div>';
+  });
+  html += '</div>';
+  drawerContent.innerHTML = html;
+  drawer.classList.add('open');
+}
+function closeDrawer(){ drawer.classList.remove('open'); }
+function toggleNote(btn){
+  btn.classList.toggle('open');
+  const body = btn.nextElementSibling;
+  body.classList.toggle('show');
+}
+
+/* ================= 时间轴进度与圆点 ================= */
+const timeline = document.getElementById('timeline');
+const progressBar = document.getElementById('progressBar');
+timeline.addEventListener('scroll', ()=>{
+  const max = timeline.scrollWidth - timeline.clientWidth;
+  const ratio = max > 0 ? timeline.scrollLeft / max : 0;
+  progressBar.style.width = (25 + ratio*75) + '%';
+  const idx = Math.round(timeline.scrollLeft / timeline.clientWidth);
+  document.querySelectorAll('.slide').forEach((s,i)=>{
+    s.querySelectorAll('.dots i').forEach((d,j)=>{
+      d.classList.toggle('on', j===idx);
+    });
+  });
+});
+
+/* ================= 人物谱系 ================= */
+const figures = [
+  {n:'甘桓', tag:'现存最早纪年实物', d:'1816年（嘉庆二十一年）作山水鼻烟壶，为现存最早有纪年的内画实物。', note:''},
+  {n:'周乐元', tag:'京派四大家', d:'京派四大家之首。王凤诒在其家见到内画，成为鲁派起点的重要线索。', note:''},
+  {n:'丁二仲', tag:'京派四大家', d:'1868—1935。京派四大家之一，与衡水内画间接相关。', note:''},
+  {n:'马少宣', tag:'巴拿马博览会名誉奖', d:'1867—1939。书画并茂，一面人物一面楷书。1915年作品获巴拿马万国博览会名誉奖。', note:''},
+  {n:'叶仲三', tag:'京派四大家', d:'生年两说：故宫博物院作1869年，多数通俗资料作1875年，卒年1945年。', note:'生年待考证，H5中并列展示。'},
+  {n:'王凤诒', tag:'鲁派传播者', d:'博山商人。1890年在北京周乐元家见到内画，回博山后转述给毕荣九。', note:'据淄博日报记载，是趁看门老头打瞌睡溜进去看的。'},
+  {n:'毕荣九', tag:'鲁派试制成功', d:'17岁听王凤诒转述后，自行琢磨试制内画成功。', note:'不是王凤诒手把手教的。'},
+  {n:'叶晓峰', tag:'京派传人', d:'1954年被政府聘入北京工艺美术研究所，京派绝处逢生。', note:'叶仲三之子，名字用字以博物馆说明牌为准。'},
+  {n:'叶慕祺', tag:'京派传人', d:'1954年与叶晓峰一同入北京工艺美术研究所。', note:'公开出版物中另有"叶奉祺"等写法，并列标注。'},
+  {n:'王习三', tag:'冀派创始人', d:'1957年考入北京工艺美术研究所，1958年2月28日拜叶晓峰、叶慕祺为师。1966年遣返阜城杨庄，1968年秋发明金属杆勾毛笔。', note:''},
+  {n:'王自勇', tag:'当代传承与产业化', d:'王习三之子。推动"艺术品实用化，实用品艺术化"，研发内画酒具、茶具等实用型新产品。', note:'传承代次谱系待馆方确认，暂不标注"第七代"。'}
+];
+
+const figTrack = document.getElementById('figTrack');
+figures.forEach(f=>{
+  const card = document.createElement('div');
+  card.className = 'fig-card';
+  const avatarHtml = f.avatar
+    ? '<img class="fig-avatar" src="'+f.avatar+'" alt="'+f.n+'">'
+    : '<svg class="fig-silhouette" viewBox="0 0 60 70">'+
+        '<circle cx="30" cy="20" r="12" fill="rgba(139,110,70,.45)"/>'+
+        '<path d="M10 70 Q10 44 30 44 Q50 44 50 70 Z" fill="rgba(139,110,70,.45)"/>'+
+      '</svg>';
+  card.innerHTML =
+    avatarHtml+
+    '<div class="fig-name">'+f.n+'</div>'+
+    '<div class="fig-tag">'+f.tag+'</div>'+
+    '<div class="fig-detail">'+f.d+(f.note?'<div class="fig-note">'+f.note+'</div>':'')+'</div>';
+  card.addEventListener('click', ()=>{
+    const open = card.classList.contains('active');
+    document.querySelectorAll('.fig-card').forEach(c=>c.classList.remove('active'));
+    document.querySelectorAll('.fig-detail').forEach(d=>d.classList.remove('show'));
+    if(!open){
+      card.classList.add('active');
+      card.querySelector('.fig-detail').classList.add('show');
+    }
+  });
+  figTrack.appendChild(card);
+});
+
+/* ================= 文脉传承图 ================= */
+const heritage = [
+  {t:'鼻烟传入', b:'明末随欧洲传教士与海上贸易传入中国。'},
+  {t:'鼻烟壶出现', b:'鼻烟盒不便携带，改用装丸散膏丹的壶来装鼻烟。'},
+  {t:'内画诞生', b:'两说并存：困庙小吏刮烟签 / 甘桓磨砂制笔。'},
+  {t:'京鲁并立', b:'京派四大家与鲁派1890年起点，内画进入鼎盛。'},
+  {t:'战乱凋零', b:'时局动荡，内画几乎人亡艺绝。'},
+  {t:'绝处逢生', b:'1954年叶晓峰、叶慕祺入北京工艺美术研究所。'},
+  {t:'冀派扎根', b:'1966年遣返、1967年副业恢复、1968年秋金属杆勾笔。'},
+  {t:'非遗与产业化', b:'2006年首批国家级非遗（VII-15），当代产业化推进。'}
+];
+const hTrack = document.getElementById('heritageTrack');
+heritage.forEach((h,i)=>{
+  if(i>0){
+    const link = document.createElement('div');
+    link.className = 'hlink';
+    hTrack.appendChild(link);
+  }
+  const node = document.createElement('div');
+  node.className = 'hnode';
+  node.innerHTML = '<div class="hdot"></div><div class="hlabel">'+h.t+'</div>'+
+                   '<div class="hbubble">'+h.b+'</div>';
+  node.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    const bubble = node.querySelector('.hbubble');
+    const wasShown = bubble.classList.contains('show');
+    document.querySelectorAll('.hbubble').forEach(b=>b.classList.remove('show'));
+    if(!wasShown) bubble.classList.add('show');
+  });
+  hTrack.appendChild(node);
+});
+document.addEventListener('click', ()=>{
+  document.querySelectorAll('.hbubble').forEach(b=>b.classList.remove('show'));
+});
+
+/* ================= 留言板 ================= */
+const QUICK = ['画衡水湖','画一只猫','画家乡的老房子','画一朵梅花','画今天的自己'];
+const quickRow = document.getElementById('quickRow');
+QUICK.forEach(q=>{
+  const b = document.createElement('button');
+  b.textContent = q;
+  b.addEventListener('click', ()=>{
+    addMsg(q, true);
+    showPoster(q);
+  });
+  quickRow.appendChild(b);
+});
+
+const STORAGE_KEY = 'huliliangbainian_msgs';
+function loadMsgs(){
+  try{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }catch(e){ return []; }
+}
+function saveMsgs(arr){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }catch(e){}
+}
+let msgs = loadMsgs();
+
+if(msgs.length === 0){
+  msgs = [
+    {t:'画衡水湖', q:true},
+    {t:'画一只猫', q:true},
+    {t:'画一朵梅花', q:true},
+    {t:'我想画老家门口那棵树', q:false}
+  ];
+  saveMsgs(msgs);
+}
+
+const boardWall = document.getElementById('boardWall');
+
+function renderMsgs(){
+  boardWall.innerHTML = '';
+  msgs.forEach(m=>{
+    const d = document.createElement('div');
+    d.className = 'msg' + (m.q ? ' quick' : '');
+    d.textContent = m.t;
+    boardWall.appendChild(d);
+  });
+  boardWall.scrollTop = boardWall.scrollHeight;
+}
+renderMsgs();
+
+function addMsg(text, quick){
+  text = (text||'').trim();
+  if(!text) return;
+  msgs.push({t:text, q:!!quick});
+  saveMsgs(msgs);
+  renderMsgs();
+}
+function submitMsg(){
+  const input = document.getElementById('msgInput');
+  const v = input.value.trim();
+  if(!v) return;
+  addMsg(v, false);
+  input.value = '';
+  showPoster(v);
+}
+document.getElementById('msgInput').addEventListener('keydown', e=>{
+  if(e.key === 'Enter') submitMsg();
+});
+
+/* ================= 分享海报页 ================= */
+const posterLayer = document.getElementById('poster-layer');
+function showPoster(text){
+  document.getElementById('posterMsg').textContent = text;
+  posterLayer.classList.add('show');
+}
+function closePoster(){
+  posterLayer.classList.remove('show');
+}
+</script>
+</body>
+</html>
